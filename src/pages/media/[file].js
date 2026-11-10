@@ -1,0 +1,2 @@
+import {root} from '../../lib/db.js';import {readFile} from 'node:fs/promises';import path from 'node:path';
+export const GET=async({params})=>{if(!/^[a-f0-9-]+\.(webp|mp4)$/.test(params.file))return new Response(null,{status:404});try{return new Response(await readFile(path.join(root,'media',params.file)),{headers:{'Content-Type':params.file.endsWith('.mp4')?'video/mp4':'image/webp','Cache-Control':'public, max-age=31536000, immutable'}})}catch{return new Response(null,{status:404})}};

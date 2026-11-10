@@ -1,0 +1,4 @@
+import {db} from '../../lib/db.js';
+export const GET=()=>Response.json(db.prepare('SELECT * FROM vehicles ORDER BY id DESC').all().map(x=>({id:x.id,...JSON.parse(x.data)})));
+export const POST=async({request})=>{try{const data=await request.json();if(!data.name?.trim())return new Response('Nombre requerido',{status:400});let id=data.id;delete data.id;if(id)db.prepare('UPDATE vehicles SET data=? WHERE id=?').run(JSON.stringify(data),id);else id=Number(db.prepare('INSERT INTO vehicles(data) VALUES (?)').run(JSON.stringify(data)).lastInsertRowid);return Response.json({id});}catch{return new Response('Datos inválidos',{status:400})}};
+export const DELETE=async({request})=>{const {id}=await request.json();db.prepare('DELETE FROM vehicles WHERE id=?').run(id);return new Response(null,{status:204})};

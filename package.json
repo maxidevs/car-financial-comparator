@@ -1,0 +1,1 @@
+{"name":"comparador-electrico","version":"1.0.0","type":"module","scripts":{"dev":"astro dev --host","build":"astro build","start":"node ./dist/server/entry.mjs"},"dependencies":{"@astrojs/node":"^10.0.0","astro":"^6.0.0","autonumeric":"^4.10.10","busboy":"^1.6.0","dropzone":"^6.3.5","lucide":"^1.70.0","motion":"^14.11.1"}}
