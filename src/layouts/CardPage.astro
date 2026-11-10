@@ -1,0 +1,22 @@
+---
+// Página simple con una tarjeta centrada: login, perfil.
+import '../styles/base.css';
+
+const { title } = Astro.props;
+---
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="robots" content="noindex" />
+    <title>{title} · Volt</title>
+  </head>
+  <body>
+    <main class="card-page">
+      <section class="card">
+        <strong>⚡ VOLT <span class="accent">/</span> COMPARADOR</strong>
+        <slot />
+      </section>
+    </main>
+  </body>
+</html>

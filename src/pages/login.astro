@@ -1,15 +1,8 @@
 ---
-import '../styles/base.css';
-import {
-  SESSION_COOKIE,
-  sessionCookieOptions,
-  isAuthConfigured,
-  checkCredentials,
-  createSession,
-  hasSession,
-} from '../lib/auth.js';
+import CardPage from '../layouts/CardPage.astro';
+import { isAuthConfigured, authenticate, startSession, getSessionUser } from '../lib/auth.js';
 
-if (hasSession(Astro.cookies)) return Astro.redirect('/');
+if (getSessionUser(Astro.cookies)) return Astro.redirect('/');
 
 let error = '';
 if (!isAuthConfigured()) {
@@ -17,41 +10,22 @@ if (!isAuthConfigured()) {
   error = 'El acceso todavía no está configurado en el servidor.';
 } else if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
-  if (checkCredentials(form.get('user'), form.get('password'))) {
-    Astro.cookies.set(SESSION_COOKIE, createSession(), sessionCookieOptions);
+  const user = await authenticate(form.get('user'), form.get('password'));
+  if (user) {
+    startSession(Astro.cookies, user);
     return Astro.redirect('/');
   }
-  // Frena los intentos por fuerza bruta.
-  await new Promise((resolve) => setTimeout(resolve, 800));
   Astro.response.status = 401;
   error = 'Usuario o contraseña incorrectos.';
 }
 ---
-<html lang="es">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="robots" content="noindex" />
-    <title>Ingresar · Volt</title>
-  </head>
-  <body>
-    <main class="login">
-      <form class="card" method="post" action="/login">
-        <strong>⚡ VOLT <span class="accent">/</span> COMPARADOR</strong>
-        <h2>Ingresar</h2>
-        <p class="muted">Acceso privado al comparador.</p>
-        <label>Usuario<input name="user" autocomplete="username" required autofocus /></label>
-        <label>Contraseña<input name="password" type="password" autocomplete="current-password" required /></label>
-        {error && <p class="login-error" role="alert">{error}</p>}
-        <button type="submit">Entrar</button>
-      </form>
-    </main>
-  </body>
-</html>
-<style>
-  .login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
-  .login form { width: 100%; max-width: 380px; }
-  .login h2 { margin-top: 20px; }
-  .login button { width: 100%; margin-top: 16px; }
-  .login-error { color: #ffabb4; margin: 12px 0 0; }
-</style>
+<CardPage title="Ingresar">
+  <h2>Ingresar</h2>
+  <p class="muted">Acceso privado al comparador.</p>
+  <form method="post" action="/login">
+    <label>Usuario<input name="user" autocomplete="username" required autofocus /></label>
+    <label>Contraseña<input name="password" type="password" autocomplete="current-password" required /></label>
+    {error && <p class="form-message error" role="alert">{error}</p>}
+    <div class="actions"><button type="submit">Entrar</button></div>
+  </form>
+</CardPage>

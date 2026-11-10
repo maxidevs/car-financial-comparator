@@ -1,0 +1,40 @@
+---
+import CardPage from '../layouts/CardPage.astro';
+import { PASSWORD_MIN_LENGTH, updateCredentials } from '../lib/auth.js';
+
+let user = Astro.locals.user;
+let message = null;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const result = await updateCredentials(Astro.cookies, user.id, {
+    username: form.get('username'),
+    currentPassword: form.get('current_password'),
+    newPassword: form.get('new_password'),
+    confirmPassword: form.get('confirm_password'),
+  });
+  if (result.error) {
+    Astro.response.status = 400;
+    message = { type: 'error', text: result.error };
+  } else {
+    user = result.user;
+    message = { type: 'success', text: result.success };
+  }
+}
+---
+<CardPage title="Perfil">
+  <h2>Perfil</h2>
+  <p class="muted">Cambiá tu usuario o tu contraseña.</p>
+  <form method="post" action="/perfil">
+    <label>Usuario<input name="username" autocomplete="username" value={user.username} required /></label>
+    <label>Nueva contraseña<input name="new_password" type="password" autocomplete="new-password" minlength={PASSWORD_MIN_LENGTH} /></label>
+    <label>Repetir nueva contraseña<input name="confirm_password" type="password" autocomplete="new-password" minlength={PASSWORD_MIN_LENGTH} /></label>
+    <small>Mínimo {PASSWORD_MIN_LENGTH} caracteres. Dejala vacía si solo cambiás el usuario.</small>
+    <label>Contraseña actual<input name="current_password" type="password" autocomplete="current-password" required /></label>
+    {message && <p class={`form-message ${message.type}`} role={message.type === 'error' ? 'alert' : 'status'}>{message.text}</p>}
+    <div class="actions">
+      <a href="/" class="button secondary">Volver</a>
+      <button type="submit">Guardar cambios</button>
+    </div>
+  </form>
+</CardPage>
