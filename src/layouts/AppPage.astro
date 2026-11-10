@@ -1,0 +1,47 @@
+---
+// Páginas internas del comparador: header con navegación, menú móvil y estilos de la app.
+import '../styles/base.css';
+import '../styles/app.css';
+
+const { title, current } = Astro.props;
+const links = [
+  { key: 'comparativas', href: '/', label: 'Comparativas', icon: 'scale' },
+  { key: 'vehiculos', href: '/vehiculos', label: 'Vehículos', icon: 'car-front' },
+];
+---
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="robots" content="noindex" />
+    <title>{title} · Volt</title>
+  </head>
+  <body>
+    <header>
+      <a href="/" class="brand"><strong>⚡ VOLT <span class="accent">/</span> COMPARADOR</strong></a>
+      <div class="header-actions">
+        <button type="button" class="secondary menu-toggle" id="menuToggle" aria-label="Menú" aria-expanded="false" aria-controls="headerMenu"><i data-lucide="menu" class="icon-closed" aria-hidden="true"></i><i data-lucide="x" class="icon-open" aria-hidden="true"></i></button>
+        <nav class="header-menu" id="headerMenu" aria-label="Principal">
+          {links.map((link) => (
+            <a href={link.href} class="button secondary" aria-current={link.key === current ? 'page' : undefined}><i data-lucide={link.icon} aria-hidden="true"></i>{link.label}</a>
+          ))}
+          <a href="/perfil" class="button secondary"><i data-lucide="user-round" aria-hidden="true"></i>Perfil</a>
+          <form method="post" action="/logout"><button type="submit" class="secondary"><i data-lucide="log-out" aria-hidden="true"></i>Salir</button></form>
+        </nav>
+      </div>
+    </header>
+    <slot />
+  </body>
+</html>
+<script>
+import { createIcons, CarFront, FileText, Landmark, ShieldCheck, Menu, X, UserRound, LogOut, Scale } from 'lucide';
+// Una sola llamada para todos los íconos de la app (header y páginas).
+createIcons({ icons: { CarFront, FileText, Landmark, ShieldCheck, Menu, X, UserRound, LogOut, Scale } });
+const menuToggle = document.getElementById('menuToggle');
+const headerMenu = document.getElementById('headerMenu');
+const isMenuOpen = () => menuToggle.getAttribute('aria-expanded') === 'true';
+const setMenu = (open) => { menuToggle.setAttribute('aria-expanded', String(open)); headerMenu.classList.toggle('open', open); };
+menuToggle.addEventListener('click', () => setMenu(!isMenuOpen()));
+document.addEventListener('click', (e) => { if (isMenuOpen() && !menuToggle.contains(e.target) && !headerMenu.contains(e.target)) setMenu(false); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isMenuOpen()) { setMenu(false); menuToggle.focus(); } });
+</script>

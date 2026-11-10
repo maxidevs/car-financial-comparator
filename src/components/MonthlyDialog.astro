@@ -1,0 +1,8 @@
+---
+// Desglose mensual de un vehículo o de una elección. Se abre con showMonthlyBreakdown().
+---
+<dialog id="monthlyDialog" class="panel-dialog" aria-labelledby="monthlyTitle"><div class="monthly-dialog-head"><div><small class="accent">COSTO MENSUAL</small><h2 id="monthlyTitle">Desglose mensual</h2><p class="muted" id="monthlySubtitle"></p></div><button class="secondary" id="monthlyClose" type="button" aria-label="Cerrar desglose">✕</button></div><div class="monthly-content"><div id="monthlyRows"></div><div class="monthly-total"><span>Total mensual estimado</span><strong id="monthlyTotal"></strong></div><p class="monthly-note">SOAT, impuesto y tránsito se dividen entre 12 para estimar su costo mensual; no son pagos mensuales al banco.</p></div><div class="monthly-dialog-footer"><button type="button" id="monthlyDone">Entendido</button></div></dialog>
+<script>
+import { $ } from "../scripts/comparador.js";
+$('#monthlyClose').onclick=()=>$('#monthlyDialog').close();$('#monthlyDone').onclick=()=>$('#monthlyDialog').close();
+</script>
