@@ -4,8 +4,9 @@ import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 export const root=path.resolve(process.env.DATA_DIR || './data');
 mkdirSync(path.join(root,'media'),{recursive:true});
+export const withInsuranceIds = (insurances) => (Array.isArray(insurances) ? insurances : []).map((item) => (item.id ? item : { ...item, id: randomUUID() }));
 export const db=new DatabaseSync(path.join(root,'comparador.sqlite'));
-db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS vehicles (id INTEGER PRIMARY KEY, data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, session_secret TEXT NOT NULL); CREATE TABLE IF NOT EXISTS finance_offers (id TEXT PRIMARY KEY, position INTEGER NOT NULL, data TEXT NOT NULL)');
+db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS vehicles (id INTEGER PRIMARY KEY, data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, session_secret TEXT NOT NULL); CREATE TABLE IF NOT EXISTS finance_offers (id TEXT PRIMARY KEY, position INTEGER NOT NULL, data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS elections (id INTEGER PRIMARY KEY, data TEXT NOT NULL)');
 
 // Migración 1: las ofertas de financiación dejan de vivir dentro de cada
 // vehículo y pasan a una lista compartida (un crédito depende del banco, no
@@ -38,6 +39,24 @@ if (db.prepare('PRAGMA user_version').get().user_version < 1) {
       update.run(JSON.stringify(v), row.id);
     }
     db.exec('PRAGMA user_version = 1; COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  }
+}
+
+// Migración 2: cada seguro recibe un id estable para que una elección guardada
+// pueda referenciar su póliza aunque la lista se reordene.
+if (db.prepare('PRAGMA user_version').get().user_version < 2) {
+  db.exec('BEGIN');
+  try {
+    const update = db.prepare('UPDATE vehicles SET data = ? WHERE id = ?');
+    for (const row of db.prepare('SELECT * FROM vehicles').all()) {
+      const v = JSON.parse(row.data);
+      v.insurances = withInsuranceIds(v.insurances);
+      update.run(JSON.stringify(v), row.id);
+    }
+    db.exec('PRAGMA user_version = 2; COMMIT');
   } catch (error) {
     db.exec('ROLLBACK');
     throw error;
